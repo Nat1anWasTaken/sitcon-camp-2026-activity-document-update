@@ -2,8 +2,16 @@ import { readFile, writeFile } from 'node:fs/promises';
 
 const HACKMD_API_BASE = process.env.HACKMD_API_BASE ?? 'https://api.hackmd.io/v1';
 const HACKMD_TEAM_PATH = process.env.HACKMD_TEAM_PATH ?? 'SITCON';
-const HACKMD_FOLDER_ID = process.env.HACKMD_FOLDER_ID ?? 'AR1yLLpMhRw7Z9yOz7o3T';
-const HACKMD_BOOK_NOTE_ID = process.env.HACKMD_BOOK_NOTE_ID ?? '12lshlVaTGmaEG1RIKkuYw';
+const HACKMD_FOLDER_ID = resolveHackmdReference(
+  process.env.HACKMD_FOLDER_URL,
+  extractHackmdFolderId,
+  'HACKMD_FOLDER_URL',
+) ?? process.env.HACKMD_FOLDER_ID ?? 'AR1yLLpMhRw7Z9yOz7o3T';
+const HACKMD_BOOK_NOTE_ID = resolveHackmdReference(
+  process.env.HACKMD_BOOK_DOCS_URL,
+  extractHackmdNoteId,
+  'HACKMD_BOOK_DOCS_URL',
+) ?? process.env.HACKMD_BOOK_NOTE_ID ?? '12lshlVaTGmaEG1RIKkuYw';
 const README_PATH = process.env.README_PATH ?? 'README.md';
 const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL ?? 'openai/gpt-4.1-mini';
 const OPENROUTER_API_BASE = process.env.OPENROUTER_API_BASE ?? 'https://openrouter.ai/api/v1';
@@ -85,6 +93,17 @@ function requireEnv(name) {
   if (!process.env[name]) {
     throw new Error(`Missing required environment variable: ${name}`);
   }
+}
+
+function resolveHackmdReference(value, extractor, envName) {
+  if (typeof value !== 'string' || value.trim() === '') return null;
+
+  const resolved = extractor(value.trim());
+  if (!resolved) {
+    throw new Error(`Unable to derive a HackMD identifier from ${envName}`);
+  }
+
+  return resolved;
 }
 
 async function hackmdFetch(path, options = {}) {
@@ -222,6 +241,29 @@ function extractHackmdNoteId(href) {
     if (segments.length === 1 && !segments[0].startsWith('@')) return decodeURIComponent(segments[0]);
     if (segments.length >= 2 && segments[0].startsWith('@')) return decodeURIComponent(segments[1]);
     return null;
+  } catch {
+    return null;
+  }
+}
+
+function extractHackmdFolderId(href) {
+  try {
+    const url = href.startsWith('http') ? new URL(href) : new URL(href, 'https://hackmd.io');
+    if (url.hostname !== 'hackmd.io') return null;
+
+    for (const paramName of ['folderId', 'folder_id', 'id']) {
+      const param = url.searchParams.get(paramName);
+      if (param) return decodeURIComponent(param);
+    }
+
+    const segments = url.pathname.split('/').filter(Boolean);
+    if (segments.length === 0) return null;
+    const terminalMarkers = new Set(['edit', 'view', 'share']);
+    const candidate = [...segments].reverse().find((segment) => {
+      return !terminalMarkers.has(segment) && !['s', 'folder', 'folders'].includes(segment);
+    });
+
+    return candidate ? decodeURIComponent(candidate) : null;
   } catch {
     return null;
   }

@@ -37,8 +37,8 @@ jobs:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           OPENROUTER_MODEL: ${{ vars.OPENROUTER_MODEL || 'google/gemini-3.1-flash-lite' }}
           HACKMD_TEAM_PATH: SITCON
-          HACKMD_FOLDER_ID: AR1yLLpMhRw7Z9yOz7o3T
-          HACKMD_BOOK_NOTE_ID: 12lshlVaTGmaEG1RIKkuYw
+          HACKMD_FOLDER_URL: ${{ secrets.HACKMD_FOLDER_URL }}
+          HACKMD_BOOK_DOCS_URL: ${{ secrets.HACKMD_BOOK_DOCS_URL }}
           README_PATH: README.md
         run: |
           : "${HACKMD_API_TOKEN:?Missing HACKMD_API_TOKEN repository secret}"
