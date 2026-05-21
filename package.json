@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
+  "packageManager": "pnpm@10.11.0",
   "scripts": {
+    "preinstall": "npx only-allow pnpm",
     "update-book": "node scripts/update-hackmd-book.mjs",
     "update-book:dry-run": "node scripts/update-hackmd-book.mjs --dry-run"
   },
