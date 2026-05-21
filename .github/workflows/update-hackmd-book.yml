@@ -13,6 +13,7 @@ jobs:
   update:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    environment: "update-hackmd-book"
     permissions:
       contents: write
 
