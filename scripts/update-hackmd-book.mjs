@@ -1,7 +1,10 @@
+import { readFile, writeFile } from 'node:fs/promises';
+
 const HACKMD_API_BASE = process.env.HACKMD_API_BASE ?? 'https://api.hackmd.io/v1';
 const HACKMD_TEAM_PATH = process.env.HACKMD_TEAM_PATH ?? 'SITCON';
 const HACKMD_FOLDER_ID = process.env.HACKMD_FOLDER_ID ?? 'AR1yLLpMhRw7Z9yOz7o3T';
 const HACKMD_BOOK_NOTE_ID = process.env.HACKMD_BOOK_NOTE_ID ?? '12lshlVaTGmaEG1RIKkuYw';
+const README_PATH = process.env.README_PATH ?? 'README.md';
 const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL ?? 'openai/gpt-4.1-mini';
 const OPENROUTER_API_BASE = process.env.OPENROUTER_API_BASE ?? 'https://openrouter.ai/api/v1';
 const OPENROUTER_SITE_URL = process.env.OPENROUTER_SITE_URL ?? process.env.GITHUB_SERVER_URL;
@@ -37,6 +40,7 @@ async function main() {
   console.log(`Found ${missingNotes.length} notes missing from book ${HACKMD_BOOK_NOTE_ID}.`);
 
   if (missingNotes.length === 0) {
+    await syncReadme(bookContent);
     console.log('Book is already up to date.');
     return;
   }
@@ -61,6 +65,7 @@ async function main() {
   const updatedContent = renderBook(applyPlacements(book, detailedMissingNotes, placements));
 
   if (updatedContent === bookContent) {
+    await syncReadme(updatedContent);
     console.log('OpenRouter returned placements, but the rendered book did not change.');
     return;
   }
@@ -72,6 +77,7 @@ async function main() {
   }
 
   await updateTeamNote(HACKMD_BOOK_NOTE_ID, updatedContent);
+  await syncReadme(updatedContent);
   console.log(`Updated HackMD book note ${HACKMD_BOOK_NOTE_ID}.`);
 }
 
@@ -112,6 +118,26 @@ function updateTeamNote(noteId, content) {
     method: 'PATCH',
     body: JSON.stringify({ content }),
   });
+}
+
+async function syncReadme(content) {
+  if (dryRun) {
+    console.log(`Dry run enabled; not updating ${README_PATH}.`);
+    return;
+  }
+
+  const existing = await readFile(README_PATH, 'utf8').catch((error) => {
+    if (error?.code === 'ENOENT') return null;
+    throw error;
+  });
+
+  if (existing === content) {
+    console.log(`${README_PATH} already matches the HackMD book content.`);
+    return;
+  }
+
+  await writeFile(README_PATH, content, 'utf8');
+  console.log(`Updated ${README_PATH}.`);
 }
 
 function parseBook(content) {
