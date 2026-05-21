@@ -142,7 +142,16 @@ async function hackmdFetch(path, options = {}) {
   }
 
   if (response.status === 204) return null;
-  return response.json();
+
+  const contentType = response.headers.get('content-type') ?? '';
+  const body = await response.text();
+  if (body.trim() === '') return null;
+
+  if (contentType.includes('application/json')) {
+    return JSON.parse(body);
+  }
+
+  return body;
 }
 
 function listTeamNotes() {
