@@ -350,6 +350,7 @@ async function requestPlacements(book, missingNotes) {
     'Match the naming style already used in the current book structure whenever possible.',
     'Trim broad ownership or project prefixes when they are redundant in the book context, such as "SITCON Camp 2026 課活組", but keep the specific identifying part of the title.',
     'Do not invent a new topic name that is not supported by the original title or note content.',
+    'For placement.id, copy the exact value from each missing note\'s "id" field. Do not use shortId, publishLink ids, or URL segments for placement.id.',
     'Return only valid JSON with this exact shape:',
     '{"placements":[{"id":"note id","section":"section title","afterId":"existing or newly placed note id, or null to append to section","linkTitle":"hyperlink title to render in the book"}]}',
     '',
@@ -404,22 +405,40 @@ function validatePlacements(placements, missingNotes) {
   }
 
   const missingIds = new Set(missingNotes.map((note) => note.id));
+  const aliasToCanonicalId = new Map();
+  for (const note of missingNotes) {
+    for (const id of noteMatchIdentifiers(note)) {
+      if (typeof id === 'string' && id.trim() !== '') {
+        aliasToCanonicalId.set(id, note.id);
+      }
+    }
+  }
+
   const seen = new Set();
+  const normalizedPlacements = [];
 
   for (const placement of placements) {
     if (!placement || typeof placement !== 'object') throw new Error('Each placement must be an object');
-    if (!missingIds.has(placement.id)) throw new Error(`Unknown placement id: ${placement.id}`);
-    if (seen.has(placement.id)) throw new Error(`Duplicate placement id: ${placement.id}`);
+    const normalizedId = normalizeMissingPlacementId(placement.id, aliasToCanonicalId);
+    if (!normalizedId) throw new Error(`Unknown placement id: ${placement.id}`);
+    if (seen.has(normalizedId)) throw new Error(`Duplicate placement id: ${normalizedId}`);
     if (typeof placement.section !== 'string' || placement.section.trim() === '') {
-      throw new Error(`Placement for ${placement.id} is missing a section`);
+      throw new Error(`Placement for ${normalizedId} is missing a section`);
     }
     if (placement.afterId !== null && typeof placement.afterId !== 'string') {
-      throw new Error(`Placement afterId for ${placement.id} must be a string or null`);
+      throw new Error(`Placement afterId for ${normalizedId} must be a string or null`);
     }
     if (typeof placement.linkTitle !== 'string' || placement.linkTitle.trim() === '') {
-      throw new Error(`Placement for ${placement.id} is missing a linkTitle`);
+      throw new Error(`Placement for ${normalizedId} is missing a linkTitle`);
     }
-    seen.add(placement.id);
+    seen.add(normalizedId);
+    normalizedPlacements.push({
+      ...placement,
+      id: normalizedId,
+      section: placement.section.trim(),
+      afterId: typeof placement.afterId === 'string' ? placement.afterId.trim() : null,
+      linkTitle: placement.linkTitle.trim(),
+    });
   }
 
   const missingPlacementIds = [...missingIds].filter((id) => !seen.has(id));
@@ -427,7 +446,14 @@ function validatePlacements(placements, missingNotes) {
     throw new Error(`OpenRouter did not place all notes: ${missingPlacementIds.join(', ')}`);
   }
 
-  return placements;
+  return normalizedPlacements;
+}
+
+function normalizeMissingPlacementId(value, aliasToCanonicalId) {
+  if (typeof value !== 'string') return null;
+  const normalized = value.trim();
+  if (normalized === '') return null;
+  return aliasToCanonicalId.get(normalized) ?? null;
 }
 
 function applyPlacements(book, missingNotes, placements) {
@@ -450,11 +476,12 @@ function applyPlacements(book, missingNotes, placements) {
       title: placement.linkTitle.trim() || note.title,
       href: note.link,
       raw: `- [${placement.linkTitle.trim() || note.title}](${note.link})`,
-      noteId: note.id,
+      noteId: note.shortId ?? note.id,
+      canonicalNoteId: note.id,
     };
 
     const afterIndex = placement.afterId
-      ? section.items.findIndex((candidate) => candidate.noteId === placement.afterId)
+      ? section.items.findIndex((candidate) => candidate.noteId === placement.afterId || candidate.canonicalNoteId === placement.afterId)
       : -1;
 
     if (afterIndex >= 0) {
