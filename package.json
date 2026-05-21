@@ -1,0 +1,13 @@
+{
+  "name": "sitcon-camp-2026-activity-document-update",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "update-book": "node scripts/update-hackmd-book.mjs",
+    "update-book:dry-run": "node scripts/update-hackmd-book.mjs --dry-run"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
