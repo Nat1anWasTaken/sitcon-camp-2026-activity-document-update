@@ -345,8 +345,13 @@ async function requestPlacements(book, missingNotes) {
     'Book mode uses Markdown headings as sections and bullet links as pages.',
     'Place each missing HackMD note into the most appropriate existing section. Create a new section only when none of the existing sections fit.',
     'Keep meeting notes in chronological order when titles indicate meeting sequence. Keep long-lived references under 長期, recruiting under 招募, and broad discussion under 其他討論.',
+    'For each missing note, also choose a concise hyperlink title for the book entry.',
+    'The hyperlink title must be based on the original document title, and must still clearly refer to that original document.',
+    'Match the naming style already used in the current book structure whenever possible.',
+    'Trim broad ownership or project prefixes when they are redundant in the book context, such as "SITCON Camp 2026 課活組", but keep the specific identifying part of the title.',
+    'Do not invent a new topic name that is not supported by the original title or note content.',
     'Return only valid JSON with this exact shape:',
-    '{"placements":[{"id":"note id","section":"section title","afterId":"existing or newly placed note id, or null to append to section"}]}',
+    '{"placements":[{"id":"note id","section":"section title","afterId":"existing or newly placed note id, or null to append to section","linkTitle":"hyperlink title to render in the book"}]}',
     '',
     `Current book structure:\n${JSON.stringify(currentStructure, null, 2)}`,
     '',
@@ -411,6 +416,9 @@ function validatePlacements(placements, missingNotes) {
     if (placement.afterId !== null && typeof placement.afterId !== 'string') {
       throw new Error(`Placement afterId for ${placement.id} must be a string or null`);
     }
+    if (typeof placement.linkTitle !== 'string' || placement.linkTitle.trim() === '') {
+      throw new Error(`Placement for ${placement.id} is missing a linkTitle`);
+    }
     seen.add(placement.id);
   }
 
@@ -439,9 +447,9 @@ function applyPlacements(book, missingNotes, placements) {
 
     const item = {
       indent: '',
-      title: note.title,
+      title: placement.linkTitle.trim() || note.title,
       href: note.link,
-      raw: `- [${note.title}](${note.link})`,
+      raw: `- [${placement.linkTitle.trim() || note.title}](${note.link})`,
       noteId: note.id,
     };
 
