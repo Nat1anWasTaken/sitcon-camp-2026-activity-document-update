@@ -8,6 +8,7 @@
 ## 籌會
 
 - [課活組零籌](/cR6DSkI1TsenjCeM0wTp4g)
+- [SITCON Camp 2026 課活組講者討論會議](/H1IIkdVp-x)
 - [課活組零點五籌（主線課程講者討論）](https://docs.google.com/spreadsheets/d/1FwevZG_33k4FGfsJKfWvjiETWyLM-w1z4iiac_IVeq4/edit?gid=0#gid=0)
 - [課活組一籌](/9u0VtThVRKqfitx3lY0Bfg)
 - [課活組二籌](/AxFkk4ByQ4empP0nQqdzdQ)
@@ -18,7 +19,10 @@
 ## 其他討論
 
 - [ML 課程主軸對齊](/sSw4-Y0yT8q6JSjiPfFSXg)
+- [SITCON Camp 2026 相見歡流程討論](/rk-HoAIJfx)
+- [3vx3p3EOTQ-G2LXkqAV4Vw](/rkIrJA5kzl)
 - [交大教室借用表](https://docs.google.com/spreadsheets/d/1VLaObDnB51FHQeDopEH_vyni8Kt97sWfsatRzwHmZ10/edit?usp=sharing)
 
 ## 招募
+
 - [課活組面談小規劃](/kLFnh0TZRr6yc52sqHnNGA)
