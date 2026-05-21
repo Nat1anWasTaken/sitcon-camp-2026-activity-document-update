@@ -2,16 +2,8 @@ import { readFile, writeFile } from 'node:fs/promises';
 
 const HACKMD_API_BASE = process.env.HACKMD_API_BASE ?? 'https://api.hackmd.io/v1';
 const HACKMD_TEAM_PATH = process.env.HACKMD_TEAM_PATH ?? 'SITCON';
-const HACKMD_FOLDER_ID = resolveHackmdReference(
-  process.env.HACKMD_FOLDER_URL,
-  extractHackmdFolderId,
-  'HACKMD_FOLDER_URL',
-) ?? process.env.HACKMD_FOLDER_ID ?? 'AR1yLLpMhRw7Z9yOz7o3T';
-const HACKMD_BOOK_NOTE_ID = resolveHackmdReference(
-  process.env.HACKMD_BOOK_DOCS_URL,
-  extractHackmdNoteId,
-  'HACKMD_BOOK_DOCS_URL',
-) ?? process.env.HACKMD_BOOK_NOTE_ID ?? '12lshlVaTGmaEG1RIKkuYw';
+const DEFAULT_HACKMD_FOLDER_REFERENCE = 'AR1yLLpMhRw7Z9yOz7o3T';
+const DEFAULT_HACKMD_BOOK_NOTE_REFERENCE = '12lshlVaTGmaEG1RIKkuYw';
 const README_PATH = process.env.README_PATH ?? 'README.md';
 const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL ?? 'openai/gpt-4.1-mini';
 const OPENROUTER_API_BASE = process.env.OPENROUTER_API_BASE ?? 'https://openrouter.ai/api/v1';
@@ -28,10 +20,9 @@ main().catch((error) => {
 async function main() {
   requireEnv('HACKMD_API_TOKEN');
 
-  const [bookNote, teamNotes] = await Promise.all([
-    getTeamNote(HACKMD_BOOK_NOTE_ID),
-    listTeamNotes(),
-  ]);
+  const teamNotes = await listTeamNotes();
+  const { folderId: HACKMD_FOLDER_ID, noteId: HACKMD_BOOK_NOTE_ID } = resolveConfiguredHackmdReferences(teamNotes);
+  const bookNote = await getTeamNote(HACKMD_BOOK_NOTE_ID);
 
   const bookContent = ensureString(bookNote.content, `HackMD book note ${HACKMD_BOOK_NOTE_ID} has no content field`);
   const book = parseBook(bookContent);
@@ -42,7 +33,7 @@ async function main() {
     .filter((note) => note.folderPaths?.some((folder) => folder.id === HACKMD_FOLDER_ID))
     .sort((a, b) => (a.createdAt ?? 0) - (b.createdAt ?? 0));
 
-  const missingNotes = folderNotes.filter((note) => !noteIdentifiers(note).some((id) => existingIds.has(id)));
+  const missingNotes = folderNotes.filter((note) => !noteMatchIdentifiers(note).some((id) => existingIds.has(id)));
 
   console.log(`Found ${folderNotes.length} notes in folder ${HACKMD_FOLDER_ID}.`);
   console.log(`Found ${missingNotes.length} notes missing from book ${HACKMD_BOOK_NOTE_ID}.`);
@@ -95,15 +86,45 @@ function requireEnv(name) {
   }
 }
 
-function resolveHackmdReference(value, extractor, envName) {
-  if (typeof value !== 'string' || value.trim() === '') return null;
+function resolveConfiguredHackmdReferences(teamNotes) {
+  const folderReference = process.env.HACKMD_FOLDER_URL ?? process.env.HACKMD_FOLDER_ID ?? DEFAULT_HACKMD_FOLDER_REFERENCE;
+  const noteReference = process.env.HACKMD_BOOK_DOCS_URL ?? process.env.HACKMD_BOOK_NOTE_ID ?? DEFAULT_HACKMD_BOOK_NOTE_REFERENCE;
 
-  const resolved = extractor(value.trim());
-  if (!resolved) {
-    throw new Error(`Unable to derive a HackMD identifier from ${envName}`);
+  return {
+    folderId: resolveFolderReference(folderReference, teamNotes, 'HACKMD_FOLDER_URL/HACKMD_FOLDER_ID'),
+    noteId: resolveNoteReference(noteReference, teamNotes, 'HACKMD_BOOK_DOCS_URL/HACKMD_BOOK_NOTE_ID'),
+  };
+}
+
+function resolveFolderReference(reference, teamNotes, envName) {
+  if (typeof reference !== 'string' || reference.trim() === '') {
+    throw new Error(`Missing HackMD folder reference in ${envName}`);
   }
 
-  return resolved;
+  const candidateIds = extractHackmdFolderCandidates(reference.trim());
+  const folders = collectFolders(teamNotes);
+
+  for (const candidateId of candidateIds) {
+    const folder = folders.find((item) => item.id === candidateId || item.clientId === candidateId);
+    if (folder) return folder.id;
+  }
+
+  throw new Error(`Unable to resolve a HackMD folder id from ${envName}: ${reference}`);
+}
+
+function resolveNoteReference(reference, teamNotes, envName) {
+  if (typeof reference !== 'string' || reference.trim() === '') {
+    throw new Error(`Missing HackMD note reference in ${envName}`);
+  }
+
+  const candidateIds = extractHackmdNoteCandidates(reference.trim());
+
+  for (const candidateId of candidateIds) {
+    const note = teamNotes.find((item) => noteIdentifiers(item).includes(candidateId) || noteAliasIdentifiers(item).includes(candidateId));
+    if (note) return note.id;
+  }
+
+  throw new Error(`Unable to resolve a HackMD note id from ${envName}: ${reference}`);
 }
 
 async function hackmdFetch(path, options = {}) {
@@ -185,7 +206,7 @@ function parseBook(content) {
         title: item[2],
         href: item[3],
         raw: line,
-        noteId: extractHackmdNoteId(item[3]),
+        noteId: extractHackmdNoteCandidates(item[3])[0] ?? null,
       });
       continue;
     }
@@ -226,47 +247,64 @@ function collectExistingHackmdIds(book) {
   const ids = new Set();
   for (const section of book.sections) {
     for (const item of section.items) {
-      if (item.noteId) ids.add(item.noteId);
+      for (const id of extractHackmdNoteCandidates(item.href)) {
+        ids.add(id);
+      }
     }
   }
   return ids;
 }
 
-function extractHackmdNoteId(href) {
+function extractHackmdNoteCandidates(href) {
   try {
     const url = href.startsWith('http') ? new URL(href) : new URL(href, 'https://hackmd.io');
-    if (url.hostname !== 'hackmd.io') return null;
+    if (url.hostname !== 'hackmd.io') return [];
 
     const segments = url.pathname.split('/').filter(Boolean);
-    if (segments.length === 1 && !segments[0].startsWith('@')) return decodeURIComponent(segments[0]);
-    if (segments.length >= 2 && segments[0].startsWith('@')) return decodeURIComponent(segments[1]);
-    return null;
+    if (segments.length === 1 && !segments[0].startsWith('@')) return [decodeURIComponent(segments[0])];
+    if (segments.length >= 2 && segments[0].startsWith('@')) return [decodeURIComponent(segments[1])];
+    return [];
   } catch {
-    return null;
+    return [];
   }
 }
 
-function extractHackmdFolderId(href) {
+function extractHackmdFolderCandidates(href) {
   try {
     const url = href.startsWith('http') ? new URL(href) : new URL(href, 'https://hackmd.io');
-    if (url.hostname !== 'hackmd.io') return null;
+    if (url.hostname !== 'hackmd.io') return [];
+    const candidates = [];
 
     for (const paramName of ['folderId', 'folder_id', 'id']) {
       const param = url.searchParams.get(paramName);
-      if (param) return decodeURIComponent(param);
+      if (param) candidates.push(decodeURIComponent(param));
     }
 
     const segments = url.pathname.split('/').filter(Boolean);
-    if (segments.length === 0) return null;
+    if (segments.length === 0) return candidates;
     const terminalMarkers = new Set(['edit', 'view', 'share']);
     const candidate = [...segments].reverse().find((segment) => {
       return !terminalMarkers.has(segment) && !['s', 'folder', 'folders'].includes(segment);
     });
 
-    return candidate ? decodeURIComponent(candidate) : null;
+    if (candidate) candidates.push(decodeURIComponent(candidate));
+    return [...new Set(candidates)];
   } catch {
-    return null;
+    return [];
   }
+}
+
+function collectFolders(teamNotes) {
+  const folders = new Map();
+
+  for (const note of teamNotes) {
+    for (const folder of note.folderPaths ?? []) {
+      if (!folder?.id) continue;
+      folders.set(folder.id, folder);
+    }
+  }
+
+  return [...folders.values()];
 }
 
 function summarizeMarkdown(markdown) {
@@ -410,6 +448,9 @@ function applyPlacements(book, missingNotes, placements) {
 
     knownIds.add(note.id);
     if (note.shortId) knownIds.add(note.shortId);
+    for (const id of noteAliasIdentifiers(note)) {
+      knownIds.add(id);
+    }
   }
 
   return nextBook;
@@ -417,6 +458,20 @@ function applyPlacements(book, missingNotes, placements) {
 
 function noteIdentifiers(note) {
   return [note.id, note.shortId].filter(Boolean);
+}
+
+function noteAliasIdentifiers(note) {
+  const ids = [];
+
+  if (typeof note.publishLink === 'string') {
+    ids.push(...extractHackmdNoteCandidates(note.publishLink));
+  }
+
+  return [...new Set(ids)];
+}
+
+function noteMatchIdentifiers(note) {
+  return [...new Set([...noteIdentifiers(note), ...noteAliasIdentifiers(note)])];
 }
 
 async function mapWithConcurrency(items, concurrency, mapper) {
