@@ -20,9 +20,9 @@
 
 - [ML 課程主軸對齊](/sSw4-Y0yT8q6JSjiPfFSXg)
 - [相見歡流程討論](/rk-HoAIJfx)
+- [交大教室借用表](https://docs.google.com/spreadsheets/d/1VLaObDnB51FHQeDopEH_vyni8Kt97sWfsatRzwHmZ10/edit?usp=sharing)
 - [闖關活動同步會議](/BJwxdE6yfl)
 - [點數系統設計方向](/S1zeqB6kMg)
-- [交大教室借用表](https://docs.google.com/spreadsheets/d/1VLaObDnB51FHQeDopEH_vyni8Kt97sWfsatRzwHmZ10/edit?usp=sharing)
 
 ## 招募
 
