@@ -344,6 +344,7 @@ async function requestPlacements(book, missingNotes) {
     'You update a HackMD book-mode table of contents for SITCON Camp 2026 activity-team documents.',
     'Book mode uses Markdown headings as sections and bullet links as pages.',
     'Place each missing HackMD note into the most appropriate existing section. Create a new section only when none of the existing sections fit.',
+    'CRITICAL: Your output placements array MUST include an entry for EVERY note in the Missing notes list. The array length must match the number of missing notes exactly. Do not omit any.',
     'Keep meeting notes in chronological order when titles indicate meeting sequence. Keep long-lived references under 長期, recruiting under 招募, and broad discussion under 其他討論.',
     'For each missing note, also choose a concise hyperlink title for the book entry.',
     'The hyperlink title must be based on the original document title, and must still clearly refer to that original document.',
@@ -359,44 +360,90 @@ async function requestPlacements(book, missingNotes) {
     `Missing notes:\n${JSON.stringify(missingNotes, null, 2)}`,
   ].join('\n');
 
-  const response = await fetch(`${OPENROUTER_API_BASE}/chat/completions`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
-      'Content-Type': 'application/json',
-      ...(OPENROUTER_SITE_URL ? { 'HTTP-Referer': OPENROUTER_SITE_URL } : {}),
-      ...(OPENROUTER_APP_NAME ? { 'X-Title': OPENROUTER_APP_NAME } : {}),
-    },
-    body: JSON.stringify({
-      model: OPENROUTER_MODEL,
-      messages: [
-        {
-          role: 'system',
-          content: 'You classify markdown documents into a HackMD book-mode outline. Return strict JSON only.',
-        },
-        { role: 'user', content: prompt },
-      ],
-      response_format: { type: 'json_object' },
-      temperature: 0.1,
-    }),
-  });
+  const headers = {
+    Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+    'Content-Type': 'application/json',
+    ...(OPENROUTER_SITE_URL ? { 'HTTP-Referer': OPENROUTER_SITE_URL } : {}),
+    ...(OPENROUTER_APP_NAME ? { 'X-Title': OPENROUTER_APP_NAME } : {}),
+  };
 
-  if (!response.ok) {
-    throw new Error(`OpenRouter API failed: ${response.status} ${await response.text()}`);
+  const systemMessage = {
+    role: 'system',
+    content: 'You classify markdown documents into a HackMD book-mode outline. You must place every single missing note provided. Return strict JSON only.',
+  };
+
+  const MAX_ROUNDS = 10;
+  let lastError;
+  const feedbacks = [];
+
+  for (let round = 1; round <= MAX_ROUNDS; round++) {
+    let userContent = prompt;
+    if (feedbacks.length > 0) {
+      userContent = prompt + '\n\n' + feedbacks.join('\n\n');
+    }
+    const messages = [systemMessage, { role: 'user', content: userContent }];
+
+    const response = await fetch(`${OPENROUTER_API_BASE}/chat/completions`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        model: OPENROUTER_MODEL,
+        messages,
+        response_format: { type: 'json_object' },
+        temperature: 0.1,
+      }),
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      lastError = new Error(`OpenRouter API failed: ${response.status} ${text}`);
+      if (round === MAX_ROUNDS) break;
+      feedbacks.push(`Previous API request failed with status ${response.status}. Please retry and return the complete valid JSON placements for all missing notes. The full context and data are included above.`);
+      continue;
+    }
+
+    const data = await response.json();
+    const content = data.choices?.[0]?.message?.content;
+    if (!content) {
+      lastError = new Error('OpenRouter response did not include message content');
+      if (round === MAX_ROUNDS) break;
+      feedbacks.push('The previous response had no message content. Please return only the exact required JSON object with placements for every missing note. The full context is provided above.');
+      continue;
+    }
+
+    let parsed;
+    try {
+      parsed = JSON.parse(content);
+    } catch (error) {
+      lastError = new Error(`OpenRouter returned invalid JSON: ${content}`, { cause: error });
+      if (round === MAX_ROUNDS) break;
+      feedbacks.push(`The previous output was not valid JSON. Please return only the JSON object in the exact shape specified, with one placement per missing note using their exact "id" values from the data above.`);
+      continue;
+    }
+
+    try {
+      return validatePlacements(parsed.placements, missingNotes);
+    } catch (error) {
+      lastError = error;
+      if (round === MAX_ROUNDS) break;
+      const errorMsg = String(error.message || error);
+      let feedback;
+      if (errorMsg.includes('did not place all notes')) {
+        const missing = errorMsg.split(': ').pop() || 'some notes';
+        feedback = `WARNING: Your previous JSON did not place all notes. Specifically missing these IDs: ${missing}.
+
+The full task context, current book structure, and complete "Missing notes" list (with all their "id" values) are provided in the first part of this message above.
+
+You MUST output a complete "placements" array that contains an entry for EVERY one of those missing note IDs (using the exact "id" strings from the data above). Do not omit any again.`;
+      } else {
+        feedback = `Placements validation error: ${errorMsg}. The full context and data are above. Correct the issues and ensure there is a valid placement for each and every missing note ID listed.`;
+      }
+      feedbacks.push(feedback);
+      continue;
+    }
   }
 
-  const data = await response.json();
-  const content = data.choices?.[0]?.message?.content;
-  if (!content) throw new Error('OpenRouter response did not include message content');
-
-  let parsed;
-  try {
-    parsed = JSON.parse(content);
-  } catch (error) {
-    throw new Error(`OpenRouter returned invalid JSON: ${content}`, { cause: error });
-  }
-
-  return validatePlacements(parsed.placements, missingNotes);
+  throw lastError || new Error(`Failed after ${MAX_ROUNDS} attempts to get complete placements from OpenRouter`);
 }
 
 function validatePlacements(placements, missingNotes) {
