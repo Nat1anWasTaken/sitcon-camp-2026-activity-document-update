@@ -35,7 +35,7 @@ jobs:
         env:
           HACKMD_API_TOKEN: ${{ secrets.HACKMD_API_TOKEN }}
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-          OPENROUTER_MODEL: ${{ vars.OPENROUTER_MODEL || 'google/gemini-3.1-flash-lite' }}
+          OPENROUTER_MODEL: ${{ vars.OPENROUTER_MODEL || 'openai/gpt-oss-120b:free' }}
           HACKMD_TEAM_PATH: SITCON
           HACKMD_FOLDER_URL: ${{ secrets.HACKMD_FOLDER_URL }}
           HACKMD_BOOK_DOCS_URL: ${{ secrets.HACKMD_BOOK_DOCS_URL }}
