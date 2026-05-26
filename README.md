@@ -24,6 +24,8 @@
 - [交大教室借用表](https://docs.google.com/spreadsheets/d/1VLaObDnB51FHQeDopEH_vyni8Kt97sWfsatRzwHmZ10/edit?usp=sharing)
 - [闖關活動同步會議](/BJwxdE6yfl)
 - [點數系統設計方向](/S1zeqB6kMg)
+- [點數系統規則評估與調整建議](/BJxjRnfxfe)
+- [視界咖啡館初步筆記](/rymsPJygzl)
 
 ## 招募
 
