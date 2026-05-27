@@ -1,4 +1,4 @@
-# SITCON Camp 2026 課活組文件綜整
+# SITCON Camp 2026 課活組文件索引
 
 ## 長期
 
