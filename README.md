@@ -25,7 +25,10 @@
 - [闖關活動同步會議](/BJwxdE6yfl)
 - [點數系統設計方向](/S1zeqB6kMg)
 - [點數系統規則評估與調整建議](/BJxjRnfxfe)
+- [8PosyKw-RFG0CKVoC3Yycg](/BJd-xgPgGg)
 - [視界咖啡館初步筆記](/rymsPJygzl)
+- [視界咖啡館講者提名](/B13Mlevlfl)
+- [跟你的 Agent 戰鬥吧](/HkoPqfPxMe)
 
 ## 招募
 
