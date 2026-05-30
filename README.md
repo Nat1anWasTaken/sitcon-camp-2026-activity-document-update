@@ -1,4 +1,4 @@
-# SITCON Camp 2026 課活組文件索引
+## SITCON Camp 2026 課活組文件索引
 
 ## 長期
 
@@ -29,6 +29,7 @@
 - [視界咖啡館初步筆記](/rymsPJygzl)
 - [視界咖啡館講者提名](/B13Mlevlfl)
 - [跟你的 Agent 戰鬥吧](/HkoPqfPxMe)
+- [SIGs 爐邊夜談](/HkegLkuezl)
 
 ## 招募
 
