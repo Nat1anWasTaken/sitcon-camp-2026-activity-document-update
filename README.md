@@ -16,6 +16,7 @@
 - [課活組四籌](/yjbSOzjISBeUTH8ebOerSg)
 - [課活組五籌](/THysX6FpSEinm5jLmzHEYg)
 - [課活組六籌](/4sl9Vab1QQaeBjEgebRB_A)
+- [課活組七籌](/BJsVrQuxMe)
 
 ## 其他討論
 
