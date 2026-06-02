@@ -24,6 +24,7 @@
 - [相見歡流程討論](/rk-HoAIJfx)
 - [交大教室借用表](https://docs.google.com/spreadsheets/d/1VLaObDnB51FHQeDopEH_vyni8Kt97sWfsatRzwHmZ10/edit?usp=sharing)
 - [闖關活動同步會議](/BJwxdE6yfl)
+- [闖關活動同步會議](/HyUeC7hlzx)
 - [點數系統設計方向](/S1zeqB6kMg)
 - [點數系統規則評估與調整建議](/BJxjRnfxfe)
 - [8PosyKw-RFG0CKVoC3Yycg](/BJd-xgPgGg)
