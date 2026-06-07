@@ -42,10 +42,19 @@
 
 - [視界咖啡館初步筆記](/rymsPJygzl)
 
+## 破解位元城的都市傳說
+
+- [破解位元城的都市傳說](https://docs.google.com/document/d/1T8RnAOHptevv-s02uU9PRAPVXAlRvBTJBRhYS9Xo2CU/edit?usp=sharing)
+
 ## 點數系統
 
 - [點數系統設計方向](/S1zeqB6kMg)
 - [點數系統規則評估與調整建議](/BJxjRnfxfe)
+
+## SIGs 爐邊夜談
+
+- [SIGs 爐邊夜談](/HkegLkuezl)
+- [爐邊夜談開桌登記](/ryjWvelWMx)
 
 ## 其他
 
@@ -53,8 +62,7 @@
 
 - [相見歡流程討論](/rk-HoAIJfx)
 - [交大教室借用表](https://docs.google.com/spreadsheets/d/1VLaObDnB51FHQeDopEH_vyni8Kt97sWfsatRzwHmZ10/edit?usp=sharing)
-- [SIGs 爐邊夜談](/HkegLkuezl)
-- [爐邊夜談開桌登記](/ryjWvelWMx)
+
 
 ## 招募
 
