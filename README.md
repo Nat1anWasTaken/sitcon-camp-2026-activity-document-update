@@ -29,6 +29,7 @@
 ## 實境解謎 (Day 4)
 
 - [實境解謎同步會議](/BJwxdE6yfl)
+- [海森堡 bug 交接會議](/ryhPeewZMx)
 
 ## 闖關活動 (Day 1)
 
