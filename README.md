@@ -55,6 +55,7 @@
 
 - [SIGs 爐邊夜談](/HkegLkuezl)
 - [爐邊夜談開桌登記](/ryjWvelWMx)
+- [爐邊夜談（SIGs）](/B1eTC8LZfg)
 
 ## 其他
 
@@ -62,7 +63,6 @@
 
 - [相見歡流程討論](/rk-HoAIJfx)
 - [交大教室借用表](https://docs.google.com/spreadsheets/d/1VLaObDnB51FHQeDopEH_vyni8Kt97sWfsatRzwHmZ10/edit?usp=sharing)
-
 
 ## 招募
 
