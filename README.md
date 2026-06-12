@@ -33,6 +33,7 @@
 ## 海森堡 bug（破解位元城的都市傳說）
 
 - [海森堡 bug 交接會議](/ryhPeewZMx)
+- [活動規劃](https://docs.google.com/document/d/1T8RnAOHptevv-s02uU9PRAPVXAlRvBTJBRhYS9Xo2CU/edit?usp=drive_link)
 
 ## 闖關活動 (Day 1)
 
