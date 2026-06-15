@@ -29,7 +29,8 @@
 
 ## 實境解謎 (Day 4)
 
-- [實境解謎同步會議](/BJwxdE6yfl)
+- [實境解謎同步會議 (Deprecated)](/BJwxdE6yfl)
+- [實境解謎討論會議](/ivAUkt_kTDm5C1pLan8RiQ)
 
 ## 海森堡 bug（破解位元城的都市傳說）
 
