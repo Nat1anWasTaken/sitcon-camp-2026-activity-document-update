@@ -20,6 +20,7 @@
 - [課活組六籌](/4sl9Vab1QQaeBjEgebRB_A)
 - [課活組七籌](/BJsVrQuxMe)
 - [課活組八籌](/U7Z0Q1S_SrWYGB5ua4eguQ)
+- [課活組九籌](/H1LBMARWzg)
 
 ## 主線課程
 
