@@ -26,6 +26,7 @@
 
 - [ML 課程主軸對齊](/sSw4-Y0yT8q6JSjiPfFSXg)
 - [ML 課程 Spec](/B1VDZ5kGMl)
+- [資安先導課程規劃](/rkNJET7Gze)
 
 ## 各課程活動、點數系統
 
@@ -50,6 +51,7 @@
 ## 視界咖啡館
 
 - [視界咖啡館初步筆記](/rymsPJygzl)
+- [視界咖啡館流程規劃](/VoXlnA_yT4eRkglw8KCciQ)
 
 ## 破解位元城的都市傳說
 
