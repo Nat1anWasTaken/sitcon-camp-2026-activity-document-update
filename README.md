@@ -6,6 +6,7 @@
 
 - [課活組工具使用指南](/M11bsNAISbe_GaK4hLrp9Q)
 - [課活組營期課表](https://docs.google.com/spreadsheets/d/1D887C9Gzc14p5y5vUnoitAX6Y5eWH0nsXLdRhZhcntY/edit)
+- [學員手冊](/SkuzbSnGzl)
 
 ## 籌會
 
