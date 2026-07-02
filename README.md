@@ -30,6 +30,7 @@
 - [ML 課程主軸對齊](/sSw4-Y0yT8q6JSjiPfFSXg)
 - [ML 課程 Spec](/B1VDZ5kGMl)
 - [資安先導課程規劃](/rkNJET7Gze)
+- [資安課程筆記](/SJJ0OkNmze)
 
 ## 各課程活動、點數系統
 
