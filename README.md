@@ -83,6 +83,8 @@
 
 - [相見歡流程討論](/rk-HoAIJfx)
 - [交大教室借用表](https://docs.google.com/spreadsheets/d/1VLaObDnB51FHQeDopEH_vyni8Kt97sWfsatRzwHmZ10/edit?usp=sharing)
+- [雨天備案討論](/H1PoWro7Gg)
+- [sITCON 活動構想](/S1XZhKC7fx)
 
 ## 招募
 
